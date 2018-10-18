@@ -1,0 +1,18 @@
+﻿body{
+margin:0px;
+padding:0px;
+}
+
+#stage{
+margin:0 auto;
+max-width:90%;
+text-align:center;
+padding:10px;
+display:none;
+}
+
+#loader{
+margin:100px auto;
+width:100px;
+
+}
