@@ -3,40 +3,26 @@ var material,material2;
 var src1='./testSmall.jpg';
 var src2='./test.jpg';
 var mesh,mesh2;
-
-
-var ua = navigator.userAgent;
-if (ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0) 
-{
-var sp = true;
-}
-else if(ua.indexOf('iPad') > 0 || ua.indexOf('android') > 0)
-{
-var sp = true;
-}
-
-
-
-//mesh切り替え用
-var group=new THREE.Group();
-
-
-
-
-
-
-
-
 var width = window.innerWidth*0.9;
 var height = window.innerHeight*0.3;
 
-  //render
-  //webGL非対応端末にはDetector.jsでエラー表示。
-if (!Detector.webgl)
+
+//sp or pc
+var ua = navigator.userAgent;
+ if (ua.indexOf('iPhone') > 0 || ua.indexOf('iPod') > 0 || ua.indexOf('Android') > 0 && ua.indexOf('Mobile') > 0)
+{var sp = true;}
+ else if(ua.indexOf('iPad') > 0 || ua.indexOf('Android') > 0)
+{var sp = true;}
+
+
+
+//webGL非対応端末にはDetector.jsでエラー表示。
+  if (!Detector.webgl)
   {
  var warning = Detector.getWebGLErrorMessage();
  document.getElementById('stage').appendChild(warning);
   }else
+//render
   {
   var renderer = new THREE.WebGLRenderer();
   renderer.setSize(width,height);
@@ -44,31 +30,32 @@ if (!Detector.webgl)
   renderer.setPixelRatio(window.devicePixelRatio);
   document.getElementById('stage').appendChild(renderer.domElement);
   }
-  //scene
-  var scene = new THREE.Scene();
 
-  //mesh 半径、経度・緯度分割数
+
+  //scene, groupはmesh切り替え用
+  var scene =new THREE.Scene();
+  var group =new THREE.Group();
+
+
+  //geometry 半径、経度・緯度分割数, x軸マイナスにして、球の裏側に映像表示
   var geometry = new THREE.SphereGeometry(900,60,40);
-  //x軸マイナスにして、球の裏側に映像表示
-  geometry.scale( -1, 1, 1 );
-
+      geometry.scale( -1, 1, 1 );
 　var geometry2 = new THREE.SphereGeometry(1000,60,40);
+      geometry2.scale( -1, 1, 1 );
 
-
-
-//loadmanager,texture
-var manager = new THREE.LoadingManager();
-manager.onProgress = function ( item, loaded, total )
+//loadmanager
+  var manager = new THREE.LoadingManager();
+  manager.onProgress = function ( item, loaded, total )
    {
     console.log( item, loaded, total );
-    //proxy準備できたらloading→proxy切り替え
+    //proxy準備できたらloading→proxy切り替え。黒味ちら見え対応でsetTimeout
     if(loaded/total == 0.5 )
       {
-       setTimeout(function(){
+       setTimeout(function()
+       {
        document.getElementById("loader").style.display="none";
        document.getElementById("stage").style.display="block"
-       },300);
-
+       },500);
       }
     //proxy→本線切り替えとproxy用mesh remove
     if(loaded/total == 1)
@@ -78,46 +65,48 @@ manager.onProgress = function ( item, loaded, total )
       }
    };
 
-   material = new THREE.MeshBasicMaterial( {
+  //material,texture
+   material = new THREE.MeshBasicMaterial({
    map: new THREE.TextureLoader(manager).load(src1,function(texture){
    texture.minFilter=THREE.LinearFilter;
 　 texture.mapping=THREE.UVMapping;
    })
    });
 
-   material2 = new THREE.MeshBasicMaterial( {
+   material2 = new THREE.MeshBasicMaterial({
    map: new THREE.TextureLoader(manager).load(src2,function(texture){
    texture.minFilter=THREE.LinearFilter;
 　 texture.mapping=THREE.UVMapping;
    })
    });
 
-
-  mesh = new THREE.Mesh( geometry, material );
+  //mesh
+  mesh = new THREE.Mesh(geometry, material);
   mesh.position.set(0,0,0);
+  mesh.rotation.y = 130 * Math.PI/180;
   //mesh.rotation.z=8* Math.PI/180;
   group.add(mesh);
   scene.add(group);
 
-  mesh2 = new THREE.Mesh( geometry, material2 );
-  geometry2.scale( -1, 1, 1 );
-
+  mesh2 = new THREE.Mesh(geometry, material2);
+  mesh2.position.set(0,0,0);
+  mesh2.rotation.y = 130 * Math.PI/180;
   //camera
   var camera = new THREE.PerspectiveCamera(45, width / height, 1, 2000);
+      camera.position.set(0,0,0.1);
 
-
-//control
-  var controls = new THREE.OrbitControls( camera,renderer.domElement );
-
-
-  camera.position.set(0,0,0.1);
-  //controls.enableDamping=true;
+  //control
+  if(!sp)
+  {
+  var controls = new THREE.OrbitControls( camera,stage);
   controls.panSpeed=0.1;
   controls.rotateSpeed=0.01;
   controls.enableDamping=true;
   controls.dampingFactor=0.1;
+  }
 
-  if(sp){
+  if(sp)
+  {
   var gcontrols=new THREE.DeviceOrientationControls(camera);
   }
   /*helper
@@ -132,12 +121,13 @@ manager.onProgress = function ( item, loaded, total )
     requestAnimationFrame(rend);
     //画面リサイズ対応
 
-    if(mesh2){
+    if(mesh){
+    mesh.rotation.y += 0.015 * Math.PI/180;
+    }
+    if(!sp){
+    controls.update();
     mesh2.rotation.y += 0.015 * Math.PI/180;
     }
-
-    controls.update();
-    mesh.rotation.y += 0.015 * Math.PI/180;
     if(sp){
     gcontrols.update();
     mesh2.rotation.y += 0.015 * Math.PI/180;
