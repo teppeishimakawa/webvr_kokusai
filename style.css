@@ -8,11 +8,13 @@ margin:0 auto;
 max-width:90%;
 text-align:center;
 padding:10px;
+/*display:none;*/
+background-color:#fff;
 display:none;
 }
 
 #loader{
 margin:100px auto;
 width:100px;
-
+display:block;
 }
