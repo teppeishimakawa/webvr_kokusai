@@ -5,6 +5,7 @@ var src2='./test.jpg';
 var mesh,mesh2;
 var width = window.innerWidth*0.9;
 var height = window.innerHeight*0.3;
+var renderer;
 
 
 //sp or pc
@@ -24,9 +25,31 @@ var ua = navigator.userAgent;
   }else
 //render
   {
-  var renderer = new THREE.WebGLRenderer();
+//IE11対応
+  function webglAvailable()
+   {
+  try
+    {
+    var canvas = document.createElement('canvas');
+    return !!
+     ( window.WebGLRenderingContext &&
+       (canvas.getContext('webgl') ||
+        canvas.getContext('experimental-webgl')
+       )
+     );
+    } catch ( e )
+    {
+      return false;
+    }
+   }
+  if (webglAvailable()) {
+    renderer = new THREE.WebGLRenderer();
+  } else {
+    renderer = new THREE.CanvasRenderer();
+  }
+
   renderer.setSize(width,height);
-  renderer.setClearColor(0x000000);
+  renderer.setClearColor(0xffffff);
   renderer.setPixelRatio(window.devicePixelRatio);
   document.getElementById('stage').appendChild(renderer.domElement);
   }
